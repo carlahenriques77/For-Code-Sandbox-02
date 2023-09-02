@@ -9,6 +9,7 @@ import { useAuthenticationStatus } from "./hooks/useAuth";
 import EditProfile from "./Pages/EditProfile/EditProfile";
 import Profile from "./Pages/Profile/Profile";
 import Photo from "./Pages/Photo/Photo";
+import Search from "./Pages/Search/Search";
 
 function App() {
   const { isAuthenticated, loadingStatus } = useAuthenticationStatus();
@@ -40,6 +41,13 @@ function App() {
             path="/users/:pathgetUserByID"
             element={
               isAuthenticated ? <Profile /> : <Navigate to="/login" />
+            }
+          />
+
+          <Route
+            path="/search"
+            element={
+              isAuthenticated ? <Search /> : <Navigate to="/login" />
             }
           />
 

@@ -2,17 +2,31 @@ import React from "react";
 import "./LikeContainer.scss";
 import { BsHeart, BsHeartFill } from "react-icons/bs";
 
-const LikeContainer = ({ currentPhotoProp, authCurrentUserProp, likeOnClickProp }) => {
+const LikeContainer = ({
+  currentPhotoProp,
+  authCurrentUserProp,
+  likeOnClickProp,
+}) => {
   return (
     <div className="like">
       {currentPhotoProp.photoLikesArray && authCurrentUserProp && (
-        <>{currentPhotoProp.photoLikesArray.includes(authCurrentUserProp._id) ? (
-            <BsHeartFill />
-        ) : (
-            <BsHeart onClick={() => likeOnClickProp(currentPhotoProp)} />
-        )}
-        
-        <p>{currentPhotoProp.photoLikesArray.length} like(s)</p>
+        <>
+          {currentPhotoProp.photoLikesArray.includes(
+            authCurrentUserProp.user_ID
+          ) ? (
+            <>
+              <BsHeartFill onClick={() => likeOnClickProp(currentPhotoProp)} />
+            </>
+          ) : (
+            <>
+              <BsHeart onClick={() => likeOnClickProp(currentPhotoProp)} />
+            </>
+          )}
+
+          <p>
+            {currentPhotoProp.photoLikesArray.length}{" "}
+            {currentPhotoProp.photoLikesArray.length <= 1 ? "Like" : "Likes"}
+          </p>
         </>
       )}
     </div>

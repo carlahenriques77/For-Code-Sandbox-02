@@ -64,7 +64,7 @@ const Profile = () => {
     setPhotoImage(selectedImage);
   };
 
-  const CUSTOMIZABLE_SET_TIMEOUT_TIMER_2000 = 2000
+  const CUSTOMIZABLE_SET_TIMEOUT_TIMER_2000 = 2000;
 
   const photoPostFormSubmit = (handleEvent) => {
     handleEvent.preventDefault();
@@ -101,7 +101,10 @@ const Profile = () => {
   const newPhotoFormRef = useRef();
   const editPhotoFormRef = useRef();
 
-  // Load User Data
+  // ChatGPT - Scroll into View when the user Clicks on the Edit Photo Button Reference
+  const editPhotoScrollOnClickRef = useRef();
+
+  // Load User Data and the User Photos
   useEffect(() => {
     profileDispatch(getUserDetailsByIDAsyncThunk(pathgetUserByID));
     profileDispatch(getUserPhotosByUserIdAsyncThunk(pathgetUserByID));
@@ -126,7 +129,7 @@ const Profile = () => {
     handleEvent.preventDefault();
 
     const editPhotoDetails = {
-      editPhotoTitleData: editPhotoTitle,
+      editPhotoTitleDataFrontend: editPhotoTitle,
       bodyUpdatePhotoID: editPhotoID,
     };
 
@@ -152,6 +155,9 @@ const Profile = () => {
     setEditPhotoID(handleEvent._id);
     setEditPhotoTitle(handleEvent.photoTitle);
     setEditPhotoImage(handleEvent.photoImage);
+
+    // Scroll to the Chosen Element
+    editPhotoScrollOnClickRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
   if (userIsLoading) {
@@ -209,7 +215,7 @@ const Profile = () => {
           </div>
 
           <div className="edit-photo hide" ref={editPhotoFormRef}>
-            <p>Editing:</p>
+            <p ref={editPhotoScrollOnClickRef}>Editing:</p>
 
             {editPhotoImage && (
               <img
@@ -259,33 +265,33 @@ const Profile = () => {
 
         <div className="photos-container">
           {allPhotosArray &&
-            allPhotosArray.map((mapItem) => (
-              <div className="photo" key={mapItem._id}>
-                {mapItem.photoImage && (
+            allPhotosArray.map((mapPhoto) => (
+              <div className="photo" key={mapPhoto._id}>
+                {mapPhoto.photoImage && (
                   <img
-                    src={`${uploads}/photos/${mapItem.photoImage}`}
-                    alt={mapItem.photoTitle}
+                    src={`${uploads}/photos/${mapPhoto.photoImage}`}
+                    alt={mapPhoto.photoTitle}
                   />
                 )}
 
                 {pathgetUserByID === authSliceCurrentUser.user_ID ? (
                   <div className="actions">
-                    <Link to={`/photos/${mapItem._id}`}>
+                    <Link to={`/photos/${mapPhoto._id}`}>
                       <BsFillEyeFill />
                     </Link>
 
                     <BsPencilFill
-                      onClick={() => showPhotoEditScreenOnClick(mapItem)}
+                      onClick={() => showPhotoEditScreenOnClick(mapPhoto)}
                     />
 
                     <BsXLg
                       onClick={() => {
-                        deletePhotoOnClick(mapItem._id);
+                        deletePhotoOnClick(mapPhoto._id);
                       }}
                     />
                   </div>
                 ) : (
-                  <Link className="btn" to={`/photos/${mapItem._id}`}>
+                  <Link className="btn" to={`/photos/${mapPhoto._id}`}>
                     View
                   </Link>
                 )}

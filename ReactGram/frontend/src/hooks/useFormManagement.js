@@ -17,10 +17,12 @@ const useFormManagement = () => {
   // States: Profile Photo Post
   const [photoImage, setPhotoImage] = useState("");
   const [photoTitle, setPhotoTitle] = useState("");
-  const [photoCommentsArray, setPhotoComments] = useState([]);
 
   // States: Profile Photo Edit
   const [editPhotoTitle, setEditPhotoTitle] = useState("");
+
+  // States: Selected Photo Comment
+  const [photoCommentText, setPhotoCommentText] = useState("");
 
   // Basic OnChange: Login / Register
   const userDisplayNameBasicOnChange = (changeEvent) => {
@@ -62,6 +64,11 @@ const useFormManagement = () => {
     setEditPhotoTitle(changeEvent.target.value);
   };
 
+  // Basic OnChange: Selected Photo Comment
+  const photoCommentTextBasicOnChange = (changeEvent) => {
+    setPhotoCommentText(changeEvent.target.value);
+  };
+
   return {
     // States
     userDisplayName,
@@ -73,7 +80,7 @@ const useFormManagement = () => {
     userPreviewImage,
     photoImage,
     photoTitle,
-    photoCommentsArray,
+    photoCommentText,
     editPhotoTitle,
 
     // setStates
@@ -86,7 +93,7 @@ const useFormManagement = () => {
     setUserPreviewImage,
     setPhotoImage,
     setPhotoTitle,
-    setPhotoComments,
+    setPhotoCommentText,
     setEditPhotoTitle,
 
     // Basic OnChange
@@ -100,6 +107,7 @@ const useFormManagement = () => {
     photoImageBasicOnChange,
     photoTitleBasicOnChange,
     editPhotoTitleBasicOnChange,
+    photoCommentTextBasicOnChange,
   };
 };
 

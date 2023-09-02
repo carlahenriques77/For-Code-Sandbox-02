@@ -91,7 +91,7 @@ const getPhotoUsingPhotoIdService = async (photoID, userToken) => {
   // Create request settings using the provided data
   const requestSettings = generateRequestConfig("GET", null, userToken);
 
-  console.log("userToken Test 01:", userToken)
+  console.log("userToken Test 01:", userToken);
 
   try {
     // Send a GET request to retrieve the specific photo
@@ -130,13 +130,81 @@ const likeAnPhotoService = async (likePhotoID, userToken) => {
   }
 };
 
+// Add Comment to the Photo Comment Array, which will allow the User to Comment on a Photo, and us to Display it
+const commentOnPhotoService = async (commentPhotoID, photoData, userToken) => {
+  // Create request settings using the provided data
+  const requestSettings = generateRequestConfig("PUT", photoData, userToken);
+
+  try {
+    // Send a PUT request to like the photo
+    const fetchPhotoData = await fetch(
+      `${serverHost}/photos/comment/${commentPhotoID}`,
+      requestSettings
+    )
+      .then((response) => response.json()) // Parse response as JSON
+      .catch((error) => error); // Catch any network or parsing errors
+
+    return fetchPhotoData; // Return the fetched photo data
+  } catch (error) {
+    // Log any caught errors to the console
+    console.log(error);
+  }
+};
+
+// Get All Photos for the Homepage Mapping
+const getAllExistingPhotosService = async (userToken) => {
+  // Create request settings using the provided data
+  const requestSettings = generateRequestConfig("GET", null, userToken);
+
+  try {
+    // Send a GET request to retrieve user's photos
+    const fetchAllPhotosData = await fetch(
+      `${serverHost}/photos`,
+      requestSettings
+    )
+      .then((response) => response.json()) // Parse response as JSON
+      .catch((error) => error); // Catch any network or parsing errors
+
+    return fetchAllPhotosData; // Return the fetched photo data
+  } catch (error) {
+    // Log any caught errors to the console
+    console.log(error);
+  }
+};
+
+// Search and find Photo by Title
+const searchPhotoByTitleService = async (query, userToken) => {
+  // Create request settings using the provided data
+  const requestSettings = generateRequestConfig("GET", null, userToken);
+
+  console.log("query result 01:", query)
+
+  try {
+    // Send a GET request to retrieve user's photos
+    const fetchSearchResponse = await fetch(
+      `${serverHost}/photos/search?searchQuery=${query}`,
+      requestSettings
+    )
+      .then((response) => response.json()) // Parse response as JSON
+      .catch((error) => error); // Catch any network or parsing errors
+
+    return fetchSearchResponse; // Return the fetched photo data
+  } catch (error) {
+    // Log any caught errors to the console
+    console.log(error);
+  }
+};
+
 const photoService = {
   publishPhotoService,
   getUserPhotosByUserIdService,
   deleteUserPhotoService,
   updatePhotoService,
   getPhotoUsingPhotoIdService,
-  likeAnPhotoService
+  likeAnPhotoService,
+  commentOnPhotoService,
+  getAllExistingPhotosService,
+  searchPhotoByTitleService,
 };
 
 export default photoService;

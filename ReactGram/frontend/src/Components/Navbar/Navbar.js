@@ -20,6 +20,8 @@ const Navbar = () => {
 
   const { currentUser } = useSelector((state) => state.authReducer);
 
+  const [querySearchInput, setQuerySearchInput] = useState("");
+
   const navbarNavigate = useNavigate();
 
   const navbarDispatch = useDispatch();
@@ -31,13 +33,25 @@ const Navbar = () => {
     navbarNavigate("/login");
   };
 
+  const searchFormSubmit = (handleEvent) => {
+    handleEvent.preventDefault();
+
+    if (querySearchInput) {
+      return navbarNavigate(`/search?searchQuery=${querySearchInput}`);
+    }
+  };
+
+  const navQueryBasicOnChange = (changeEvent) => {
+    setQuerySearchInput(changeEvent.target.value);
+  };
+
   return (
     <div id="nav">
       <Link to="/">ReactGram</Link>
 
-      <form id="search-form" action="">
+      <form id="search-form" onSubmit={searchFormSubmit} action="">
         <BsSearch />
-        <input type="text" name="" id="" />
+        <input type="text" onChange={navQueryBasicOnChange} name="" id="" />
       </form>
 
       <ul id="nav-links">

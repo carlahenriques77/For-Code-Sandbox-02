@@ -40,7 +40,7 @@ const photoUpdateValidation = () => {
 const photoCommentValidation = () => {
   return [
     // Check if display name is a string and not empty
-    body("photoCommentsArray")
+    body("theUserCommentText")
       .isString()
       .withMessage("The Comment is required"),
   ];

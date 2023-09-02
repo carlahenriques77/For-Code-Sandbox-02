@@ -90,10 +90,12 @@ export const updatePhotoAsyncThunk = createAsyncThunk(
       thunkAPI.getState().authReducer.currentUser.userToken;
 
     try {
+      const { editPhotoTitleDataFrontend, bodyUpdatePhotoID } = photoData;
+
       // Call the service to update a user's photo
       const updatingPhotoResponse = await photoService.updatePhotoService(
-        { photoTitle: photoData.editPhotoTitleData },
-        photoData.bodyUpdatePhotoID,
+        { photoTitle: editPhotoTitleDataFrontend },
+        bodyUpdatePhotoID,
         getCurrentUserToken
       );
 
@@ -118,7 +120,7 @@ export const getPhotoUsingPhotoIdAsyncThunk = createAsyncThunk(
   "photoSlice/getSelectedPhoto",
   async (photoID, thunkAPI) => {
     const getCurrentUserToken =
-    thunkAPI.getState().authReducer.currentUser.userToken;
+      thunkAPI.getState().authReducer.currentUser.userToken;
 
     // Call the service to get a photo using photo ID
     const getPhotoResponse = await photoService.getPhotoUsingPhotoIdService(
@@ -158,6 +160,76 @@ export const likeAnPhotoAsyncThunk = createAsyncThunk(
     } catch (error) {
       console.log(error);
     }
+  }
+);
+
+// Add Comment to the Photo Comment Array, which will allow the User to Comment on a Photo, and us to Display it
+export const commentOnPhotoAsyncThunk = createAsyncThunk(
+  "photoSlice/commentPhoto",
+  async (commentData, thunkAPI) => {
+    const getCurrentUserToken =
+      thunkAPI.getState().authReducer.currentUser.userToken;
+
+    console.log("commentData 01:", commentData);
+
+    try {
+      const { commentTextFrontend, bodyPhotoCommentID } = commentData;
+
+      // Call the service to update a user's photo
+      const commentPhotoResponse = await photoService.commentOnPhotoService(
+        bodyPhotoCommentID,
+        { theUserCommentText: commentTextFrontend },
+        getCurrentUserToken
+      );
+
+      // Check for errors in the response
+      if (commentPhotoResponse.formValidationErrors) {
+        // Reject the promise with the first error
+        return thunkAPI.rejectWithValue(
+          commentPhotoResponse.formValidationErrors[0]
+        );
+      }
+
+      // Return the update response
+      return commentPhotoResponse;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
+
+// Get All Photos for the Homepage Mapping
+export const getAllExistingPhotosAsyncThunk = createAsyncThunk(
+  "photoSlice/getAllPhotos",
+  async (_, thunkAPI) => {
+    const getCurrentUserToken =
+      thunkAPI.getState().authReducer.currentUser.userToken;
+
+    // Call the service to get user photos by user ID
+    const getAllPhotosResponse = await photoService.getAllExistingPhotosService(
+      getCurrentUserToken
+    );
+
+    // Return the photo response
+    return getAllPhotosResponse;
+  }
+);
+
+// Search and find Photo by Title
+export const searchPhotosByTitleAsyncThunk = createAsyncThunk(
+  "photoSlice/searchPhoto",
+  async (query, thunkAPI) => {
+    const getCurrentUserToken =
+      thunkAPI.getState().authReducer.currentUser.userToken;
+
+    // Call the service to get a photo using photo ID
+    const getPhotoResponse = await photoService.searchPhotoByTitleService(
+      query,
+      getCurrentUserToken
+    );
+
+    // Return the photo response
+    return getPhotoResponse;
   }
 );
 
@@ -219,9 +291,11 @@ export const photoReducerSlice = createSlice({
         photoState.isSuccess = true; // Mark success
         photoState.hasError = null; // Clear error status
 
+        const { bodyDeletePhotoID } = photoAction.payload;
+
         photoState.allPhotosArray = photoState.allPhotosArray.filter(
           (currentPhoto) => {
-            return currentPhoto._id !== photoAction.payload.bodyDeletePhotoID;
+            return currentPhoto._id !== bodyDeletePhotoID;
           }
         );
 
@@ -242,9 +316,11 @@ export const photoReducerSlice = createSlice({
         photoState.isSuccess = true; // Mark success
         photoState.hasError = null; // Clear error status
 
+        const { bodyUpdatePhotoID, bodyUpdatePhotoTitle } = photoAction.payload;
+
         photoState.allPhotosArray = photoState.allPhotosArray.map((mapItem) => {
-          if (mapItem._id === photoAction.payload.bodyUpdatePhotoID) {
-            return { ...mapItem, photoTitle: photoAction.payload.photoTitle };
+          if (mapItem._id === bodyUpdatePhotoID) {
+            return { ...mapItem, photoTitle: bodyUpdatePhotoTitle };
           }
 
           return mapItem;
@@ -271,36 +347,114 @@ export const photoReducerSlice = createSlice({
           photoState.currentPhoto = photoAction.payload; // Update current selected photo
         }
       )
-      
+
       .addCase(likeAnPhotoAsyncThunk.pending, (photoState) => {
-        photoState.isLoading = true; // Start loading
         photoState.hasError = false; // Clear error status
       })
       .addCase(likeAnPhotoAsyncThunk.fulfilled, (photoState, photoAction) => {
-        photoState.isLoading = false; // Finish loading
         photoState.isSuccess = true; // Mark success
         photoState.hasError = null; // Clear error status
 
-        console.log("photoAction 02: ", photoAction)
+        const { photoLikesID, photoLikeCurrentUser_ID } = photoAction.payload;
 
-        if(photoState.currentPhoto.photoLikesArray) {
-          photoState.currentPhoto.photoLikesArray.push(photoAction.payload.photoLikeCurrentUser_ID)
-        }
+        const ChatGPT_LikePhotosArray = photoState.allPhotosArray.map(
+          (mapItem) => {
+            if (mapItem._id === photoLikesID) {
+              if (mapItem.photoLikesArray.includes(photoLikeCurrentUser_ID)) {
+                // User unliked the photo, remove their ID
+                mapItem.photoLikesArray = mapItem.photoLikesArray.filter(
+                  (id) => id !== photoLikeCurrentUser_ID
+                );
+              } else {
+                // User liked the photo, add their ID
+                mapItem.photoLikesArray.push(photoLikeCurrentUser_ID);
+              }
+            }
 
-        photoState.allPhotosArray = photoState.allPhotosArray.map((mapItem) => {
-          if (mapItem._id === photoAction.payload.photoLikesID) {
-            return mapItem.photoLikesArray.push(photoAction.payload.photoLikeCurrentUser_ID)
+            return mapItem;
           }
+        );
 
-          return mapItem;
-        });
+        photoState.allPhotosArray = ChatGPT_LikePhotosArray;
 
-        photoState.successPhotoMessage = SUCCESS_PHOTO_LIKE;
+        // Update the currentPhoto if applicable
+        if (photoState.currentPhoto._id === photoLikesID) {
+          if (
+            photoState.currentPhoto.photoLikesArray.includes(
+              photoLikeCurrentUser_ID
+            )
+          ) {
+            // User unliked the photo, remove their ID
+            photoState.currentPhoto.photoLikesArray =
+              photoState.currentPhoto.photoLikesArray.filter(
+                (id) => id !== photoLikeCurrentUser_ID
+              );
+          } else {
+            // User liked the photo, add their ID
+            photoState.currentPhoto.photoLikesArray.push(
+              photoLikeCurrentUser_ID
+            );
+          }
+        }
       })
       .addCase(likeAnPhotoAsyncThunk.rejected, (photoState, photoAction) => {
+        photoState.hasError = photoAction.payload; // Set error status
+      })
+
+      .addCase(commentOnPhotoAsyncThunk.pending, (photoState) => {
+        photoState.isLoading = true; // Start loading
+        photoState.hasError = false; // Clear error status
+      })
+      .addCase(
+        commentOnPhotoAsyncThunk.fulfilled,
+        (photoState, photoAction) => {
+          photoState.isLoading = false; // Finish loading
+          photoState.isSuccess = true; // Mark success
+          photoState.hasError = null; // Clear error status
+
+          const { newPhotoComment } = photoAction.payload;
+          // "newPhotoComment" from ReactGram/backend/src/controllers/photoControllers -> commentOnPhotoController -> response.status(200).json({ newPhotoComment: currentUserComment",
+
+          photoState.currentPhoto.photoCommentsArray.push(newPhotoComment);
+
+          photoState.successPhotoMessage = SUCCESS_PHOTO_LIKE;
+        }
+      )
+      .addCase(commentOnPhotoAsyncThunk.rejected, (photoState, photoAction) => {
         photoState.isLoading = false; // Finish loading
         photoState.hasError = photoAction.payload; // Set error status
-      });
+      })
+
+      .addCase(getAllExistingPhotosAsyncThunk.pending, (photoState) => {
+        photoState.isLoading = true; // Start loading
+        photoState.hasError = false; // Clear error status
+      })
+      .addCase(
+        getAllExistingPhotosAsyncThunk.fulfilled,
+        (photoState, photoAction) => {
+          photoState.isLoading = false; // Finish loading
+          photoState.isSuccess = true; // Mark success
+          photoState.hasError = null; // Clear error status
+          photoState.allPhotosArray = photoAction.payload; // Update all photos array
+        }
+      )
+
+      .addCase(searchPhotosByTitleAsyncThunk.pending, (photoState) => {
+        photoState.isLoading = true; // Start loading
+        photoState.hasError = false; // Clear error status
+      })
+      .addCase(
+        searchPhotosByTitleAsyncThunk.fulfilled,
+        (photoState, photoAction) => {
+          console.log("photoAction result 02:", photoAction);
+          console.log("photoAction.payload result 03:", photoAction.payload);
+
+          photoState.isLoading = false; // Finish loading
+          photoState.isSuccess = true; // Mark success
+          photoState.hasError = null; // Clear error status
+          photoState.allPhotosArray = photoAction.payload; // Update all photos array
+        }
+      );
   },
 });
 

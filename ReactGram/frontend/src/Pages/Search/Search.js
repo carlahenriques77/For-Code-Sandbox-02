@@ -1,18 +1,23 @@
 import React from "react";
-import "./Home.scss";
+import "./Search.scss";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useParams, Link } from "react-router-dom";
 import LikeContainer from "../../Components/LikeContainer/LikeContainer";
 import PhotoItem from "../../Components/PhotoItem/PhotoItem";
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useQuery } from "../../hooks/useQuery";
 import {
-  clearPhotoMessage,
-  getAllExistingPhotosAsyncThunk,
+  searchPhotosByTitleAsyncThunk,
   likeAnPhotoAsyncThunk,
+  clearPhotoMessage,
 } from "../../backend-utils/slices/photoSlice";
 
-const Home = () => {
-  const homeDispatch = useDispatch();
+const Search = () => {
+  const useQuerySearch = useQuery();
+
+  const searchQueryGet = useQuerySearch.get("searchQuery");
+
+  const searchDispatch = useDispatch();
 
   const { currentUser: authSliceCurrentUser } = useSelector(
     (state) => state.authReducer
@@ -26,20 +31,20 @@ const Home = () => {
     successPhotoMessage,
   } = useSelector((state) => state.photoReducer);
 
-  // Load All for the Homepage Photos
+  // Load the Photos from the Search Result
   useEffect(() => {
-    homeDispatch(getAllExistingPhotosAsyncThunk());
-  }, [homeDispatch]);
+    searchDispatch(searchPhotosByTitleAsyncThunk(searchQueryGet));
+  }, [searchDispatch, searchQueryGet]);
 
-  const CUSTOMIZABLE_SET_TIMEOUT_TIMER_2000 = 2000;
+  const CUSTOMIZABLE_SET_TIMEOUT_currentTimer_2000 = 2000;
 
-  // Like a Photo from the Homepage On Click
+  // Allows the user to Like an Photo during the Search Page Results
   const likeOnClick = (mapPhoto) => {
-    homeDispatch(likeAnPhotoAsyncThunk(mapPhoto._id));
+    searchDispatch(likeAnPhotoAsyncThunk(mapPhoto._id));
 
     setTimeout(() => {
-      homeDispatch(clearPhotoMessage());
-    }, CUSTOMIZABLE_SET_TIMEOUT_TIMER_2000);
+      searchDispatch(clearPhotoMessage());
+    }, CUSTOMIZABLE_SET_TIMEOUT_currentTimer_2000);
   };
 
   if (photoIsLoading) {
@@ -47,7 +52,9 @@ const Home = () => {
   }
 
   return (
-    <div id="home">
+    <div id="search">
+      <h2>Showing Search Results for: {searchQueryGet}</h2>
+
       {allPhotosArray &&
         allPhotosArray.map((mapPhoto) => (
           <div key={mapPhoto._id}>
@@ -66,15 +73,10 @@ const Home = () => {
         ))}
 
       {allPhotosArray.length === 0 && (
-      <h2 className="no-photos">
-        There is not Photo published yet...{" "}
-        <Link to={`/users/${authSliceCurrentUser._id}`}>
-          Be the first to Post something
-        </Link>
-      </h2>
+        <h2 className="no-photos">No Results Found...</h2>
       )}
     </div>
   );
 };
 
-export default Home;
+export default Search;

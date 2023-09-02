@@ -174,6 +174,7 @@ const updatePhotoController = async (request, response) => {
       photoDetails,
       backendUpdateMessage: "Photo Updated Sucessfully [Backend]",
       bodyUpdatePhotoID: photoDetails._id,
+      bodyUpdatePhotoTitle: photoDetails.photoTitle,
     });
   } catch (error) {
     response.status(422).json({
@@ -203,16 +204,17 @@ const likeAnPhotoController = async (request, response) => {
     }
 
     // Check if Current Logged In User Already Liked the Photo
-    if (photoDetails.photoLikesArray.includes(requestCurrentUser._id)) {
-      response.status(422).json({
-        formValidationErrors: ["You already Liked this Photo."],
-      });
+    const chatGPT_userIndex = photoDetails.photoLikesArray.indexOf(
+      requestCurrentUser._id
+    );
 
-      return;
+    if (chatGPT_userIndex !== -1) {
+      // If user already liked the photo, remove their ID from the array
+      photoDetails.photoLikesArray.splice(chatGPT_userIndex, 1);
+    } else {
+      // If user didn't like the photo, place Current User ID in the Likes Array
+      photoDetails.photoLikesArray.push(requestCurrentUser._id);
     }
-
-    // Place Current User ID in the Likes Array
-    photoDetails.photoLikesArray.push(requestCurrentUser._id);
 
     await photoDetails.save();
 
@@ -235,7 +237,8 @@ const likeAnPhotoController = async (request, response) => {
 const commentOnPhotoController = async (request, response) => {
   const { pathCommentOnPhotoID } = request.params;
 
-  const { photoCommentsArray } = request.body;
+  const { theUserCommentText } = request.body;
+  // Error: Wrong part to be passing here [Probably]. In his Code, it's called "comment"
 
   const requestCurrentUser = request.currentLoggedInUser;
 
@@ -254,7 +257,7 @@ const commentOnPhotoController = async (request, response) => {
 
     // Put User Comment in the Array of Comments
     const currentUserComment = {
-      thePhotoComment: photoCommentsArray,
+      thePhotoComment: theUserCommentText,
       commentUserDisplayName: userDetails.userDisplayName,
       commentUserProfileImage: userDetails.userProfileImage,
       commentUser_ID: userDetails._id,
